@@ -1,0 +1,66 @@
+services:
+  db:
+    image: mariadb:10.5
+    container_name: seafile-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=db_root_passwd
+      - MYSQL_LOG_CONSOLE=true
+    volumes:
+      - ./db:/var/lib/mysql   # <-- mount your attached drive
+    networks:
+      - seafile-net
+
+  memcached:
+    image: memcached:1.6
+    container_name: seafile-memcached
+    entrypoint: memcached -m 256
+    networks:
+      - seafile-net
+
+  seafile:
+    image: seafileltd/seafile-mc:latest
+    container_name: seafile
+    environment:
+      - DB_HOST=db
+      - DB_ROOT_PASSWD=db_root_passwd
+      - SEAFILE_SERVER_HOSTNAME=example.com   # <-- change to your domain
+      - SEAFILE_ADMIN_EMAIL=user@example.com      # <-- change
+      - SEAFILE_ADMIN_PASSWORD=password      # <-- change
+    volumes:
+      - ./seafile-data:/shared                 # <-- mount your attached drive
+    depends_on:
+      - db
+      - memcached
+    networks:
+      - seafile-net
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: seafile-nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - seafile
+    networks:
+      - seafile-net
+
+  certbot:
+    image: certbot/certbot
+    container_name: seafile-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet;
+      sleep 12h & wait $${!}; done"
+    # Note: No ports exposed → will never block Nginx
+    networks:
+      - seafile-net
+
+networks:
+  seafile-net:
