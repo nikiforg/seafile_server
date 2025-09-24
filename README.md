@@ -1,4 +1,4 @@
-This is a quick setup of a self hosted HTTPS Seafile server used for file sharing/cloud solution.
+# This is a quick setup of a self hosted HTTPS Seafile server used for file sharing/cloud solution.
 
 - Create a domain (example.com) and do port forwarding for ports 80 and 443 if needed (these need to be exposed for seafile to work).
 - Change example.com with personal domain in `nginx.conf.init_tmp`
