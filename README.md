@@ -1,3 +1,5 @@
+This is a quick setup of a Seafile server used for self-hosting a File server/cloud solution.
+
 - Create a domain (example.com) and do port forwarding for ports 80 and 443 if needed (these need to be exposed for seafile to work).
 - Run a temporary docker container to serve the challenge for TLS certificate creation:
 	- `docker run -d --name nginx-temp -p 80:80 -v $(pwd)/nginx.conf.init_tmp:/etc/nginx/conf.d/default.conf:ro -v $(pwd)/certbot/www:/var/www/certbot nginx:stable-alpine`
